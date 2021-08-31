@@ -124,29 +124,7 @@ func (p *Plugin) getConfig(ctx context.Context, req *request) (*drone.Config, er
 
 // getConfigData retrieves drone config data from the repo
 func (p *Plugin) getConfigData(ctx context.Context, req *request) (string, error) {
-	// get changed files
-	changedFiles, err := p.getScmChanges(ctx, req)
-	if err != nil {
-		return "", err
-	}
-
-	// get drone.yml for changed files or all of them if no changes/cron
-	configData := ""
-	if changedFiles != nil {
-		configData, err = p.getConfigForChanges(ctx, req, changedFiles)
-	} else if req.Build.Trigger == "@cron" {
-		logrus.Warnf("%s @cron, rebuilding all", req.UUID)
-		if p.considerFile == "" {
-			logrus.Warnf("recursively scanning for config files with max depth %d", p.maxDepth)
-		}
-		configData, err = p.getConfigForTree(ctx, req, "", 0)
-	} else if p.fallback {
-		logrus.Warnf("%s no changed files and fallback enabled, rebuilding all", req.UUID)
-		if p.considerFile == "" {
-			logrus.Warnf("recursively scanning for config files with max depth %d", p.maxDepth)
-		}
-		configData, err = p.getConfigForTree(ctx, req, "", 0)
-	}
+	configData, err := p.getConfigForTree(ctx, req, "", 0)
 	if err != nil {
 		return "", err
 	}
